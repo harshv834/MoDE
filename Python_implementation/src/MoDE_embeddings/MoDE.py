@@ -3,6 +3,53 @@ import scipy
 from scipy.sparse import identity, find, csr_matrix
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import pairwise_distances
+from tqdm import tqdm
+import time
+import scipy.sparse as sparse
+
+
+# def dot(A, B, out=None):
+#     """ A drop in replaement for numpy.dot
+#     Computes A.B optimized using fblas call """
+#     if A.ndim != 2 or B.ndim != 2:
+#         raise ValueError("only 2D numpy arrays are supported")
+ 
+#     gemm = sp.get_blas_funcs('gemm', arrays=(A, B))
+ 
+#     if out is None:
+#         lda, x, y, ldb = A.shape + B.shape
+#         if x != y:
+#             raise ValueError("matrices are not aligned")
+#         dtype = np.max([x.dtype for x in (A, B)])
+#         out = np.empty((lda, ldb), dtype, order='C')
+ 
+#     if A.flags.c_contiguous and B.flags.c_contiguous:
+#         gemm(alpha=1., a=A.T, b=B.T,
+#                 c=out.T, overwrite_c=True)
+#     if A.flags.c_contiguous and B.flags.f_contiguous:
+#         gemm(alpha=1., a=A.T, b=B, trans_a=True,
+#                 c=out.T, overwrite_c=True)
+#     if A.flags.f_contiguous and B.flags.c_contiguous:
+#         gemm(alpha=1., a=A, b=B.T, trans_b=True,
+#                 c=out.T, overwrite_c=True)
+#     if A.flags.f_contiguous and B.flags.f_contiguous:
+#         gemm(alpha=1., a=A, b=B, trans_a=True, trans_b=True,
+#                 c=out.T, overwrite_c=True)
+#     return out
+
+# def superdot(A, B, out = None):
+#     """ A drop in replaement for numpy.dot
+#     Computes A.B optimized using fblas call """
+#     if A.ndim != 2 or B.ndim != 2:
+#         raise ValueError("only 2D numpy arrays are supported")
+#     if out is None:
+#         lda, x, y, ldb = A.shape + B.shape
+#         if x != y:
+#             raise ValueError("matrices are not aligned")
+#         #dtype = np.max([x.dtype for x in (A, B)])
+#     out = sp.blas.dgemm(alpha = 1., a= A, b=B)
+#     return out
+
 
 class MoDE:
 
@@ -113,13 +160,38 @@ class MoDE:
             print(gamma)
             if self.verbose:
                 print("Start of Gradient Descent algorithm")
+            #inc_mat = inc_mat.toarray()
+            inc_mat_tr = sparse.csr_matrix(inc_mat.T)
+            #A_sym = inc_mat_tr.dot(inc_mat)
+            #A_sym = superdot(inc_mat.T, inc_mat)
             for cnt in range(self.max_iter):
+                t1 = time.time()
+                Ax = inc_mat.dot(x)
+                #Ax = superdot(inc_mat, x)
+                t2 = time.time()
+                A_sym_x = inc_mat_tr.dot(Ax)
+                #A_sym_x = superdot(A_sym, x)
+                t3 = time.time()
+                proj_x = self.proj_l_u(Ax, r_lb, r_ub)
+                #proj_x = self.proj_l_u(Ax, r_lb, r_ub)
+                t5 = time.time()
+                A_diff = A_sym_x - inc_mat_tr.dot(proj_x)
+                #A_diff = A_sym_x - superdot(inc_mat.T,proj_x)
+                t4 = time.time()
+
                 if cnt%10000 == 0 and self.verbose:
                     print("{} out of {} iterations has passed".format(cnt, self.max_iter))
                     # print(x)
+                #     print("Ax time : {}".format((t2 - t1)/(t4-t1)))
+                
+                # print("A_sym_x time : {}".format((t3 - t2)/(t4-t1)))
+                # print("proj_x time : {}".format((t5 - t3)/(t4-t1)))
+                # print("A_diff time : {}".format((t4 - t5)/(t4-t1)))
 
-                e = (1/np.sqrt(N-1)) * np.linalg.norm(inc_mat.T.dot(inc_mat.dot(x) - self.proj_l_u(inc_mat.dot(x), r_lb, r_ub)))
-                error_progression[cnt] = e
+                
+                e = (1/np.sqrt(N-1)) * np.linalg.norm(A_diff)
+                error_progression[cnt] = 0
+                
                 # check if the error is below tolerance
                 if cnt % 1000 == 0 and e < self.tol:
                     if self.verbose:
@@ -127,9 +199,12 @@ class MoDE:
                     error_progression = error_progression[:cnt+1]
                     break  # here the algorithm finishes
                 # The update step
-                x = x - gamma * inc_mat.T.dot(inc_mat.dot(x) - self.proj_l_u(inc_mat.dot(x), r_lb, r_ub))
+                #first_dot = inc_mat.dot(x) - 
+                x = x - gamma * (A_diff)
+                
             # adding back the point with the least score
             x = np.concatenate((x[:min_ind], np.array([0.01]), x[min_ind:]), axis=0)
+
             if self.verbose:
                 print("end of GD algorithm")
             # keeping the resulting angles
@@ -206,3 +281,4 @@ class MoDE:
             x_cart[:, i] = r * np.prod(np.sin(angles[:, :i]), axis=1) * np.cos(angles[:, i])
         x_cart[:, -1] = r * np.prod(np.sin(angles), axis=1)
         return x_cart
+

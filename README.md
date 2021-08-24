@@ -59,3 +59,16 @@ If you find this code useful or use it in a publication or research, please cite
 - _"Python_implemetation":_ This folder contains the Python implementation of MoDE.
 
 - _"benchmark":_ This folder contains the code for benchmarking the MATLAB and Python implementations of MoDE in terms of results and execution time.
+
+
+## MoDE SpeedUP implementation --
+- ISOMAP : 0.54s, MDS : 3.3s, t-SNE : 6.1s, 
+- MoDE original speed : 16s
+- (26/7/21) MoDE After removing redundant calculations and using fast CSR-vector operations : 5.9s
+
+### Possible Next Steps --
+- Check if evaluation parameters correct for all methods: Same epsilon/iterations then comparison might make sense.
+- Try to find CSR-vector multiplication using BLAS/other optimized linalg libraries (Did not find any right now)
+- Convert GD code to cython for speedup (Done in all sklearn packages for other methods - Most likely to work)
+- Use t-SNE like Barnes-Hut approximation for GD part (Might have to see performance after this approximation)
+

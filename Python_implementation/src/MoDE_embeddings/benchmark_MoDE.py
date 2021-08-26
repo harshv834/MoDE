@@ -13,7 +13,7 @@ from sklearn.metrics import pairwise_distances
 from metrics import distance_metric, correlation_metric, order_preservation
 from sklearn import datasets, manifold
 
-n_points = 10000
+n_points = 1000
 n_neighbors = 10
 n_components = 2
 
@@ -30,15 +30,15 @@ LLE = partial(manifold.LocallyLinearEmbedding,
               n_neighbors, n_components, eigen_solver='auto')
 
 methods = OrderedDict()
-methods['LLE'] = LLE(method='standard')
-methods['LTSA'] = LLE(method='ltsa')
-methods['Hessian LLE'] = LLE(method='hessian')
-methods['Isomap'] = manifold.Isomap(n_neighbors, n_components)
-#methods['MDS'] = manifold.MDS(n_components, max_iter=100, n_init=1)
-methods['SE'] = manifold.SpectralEmbedding(n_components=n_components,
-                                           n_neighbors=n_neighbors)
-methods['t-SNE'] = manifold.TSNE(n_components=n_components, init='pca',
-                                 random_state=0)
+# methods['LLE'] = LLE(method='standard')
+# methods['LTSA'] = LLE(method='ltsa')
+# methods['Hessian LLE'] = LLE(method='hessian')
+# methods['Isomap'] = manifold.Isomap(n_neighbors, n_components)
+# #methods['MDS'] = manifold.MDS(n_components, max_iter=100, n_init=1)
+# methods['SE'] = manifold.SpectralEmbedding(n_components=n_components,
+#                                            n_neighbors=n_neighbors)
+# methods['t-SNE'] = manifold.TSNE(n_components=n_components, init='pca',
+#                                  random_state=0)
 methods['MoDE'] = MoDE(n_neighbor=10, max_iter=40000, tol=0.001, verbose=True)
 
 

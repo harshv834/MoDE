@@ -10,7 +10,7 @@ import fastgd.fastgd_base as fastgd_base
 import fastgd.fastgd_cython as fastgd_cython
 import fastgd.fastgd_faster as fastgd_faster
 import pdb
-
+import itertools
 class MoDE:
     def __init__(
         self,
@@ -178,6 +178,7 @@ class MoDE:
         return x_pd
 
     def incidence_matrix(self, A, score):
+        t0 = time.time()
         """
         Creates the sparse incidence matrix of a graph from its adjacency matrix. More information about incidence
         matrix could be found in the paper
@@ -203,6 +204,9 @@ class MoDE:
                 for x in zip(find(A)[0], find(A)[1])
             ]
         )
+        t2 = time.time()
+        print("Inc Matrix time : {}".format(t2 - t0))
+        #pdb.set_trace()
         # temporary:
         # edges = []
         # for t in zip(find(A.T)[1], find(A.T)[0]):
@@ -210,13 +214,9 @@ class MoDE:
         #         edges.append(t)
         # edges = [tuple(sorted(x, key=lambda y: score[y])) for x in edges]
 
-        row_ind = []
-        col_ind = []
-        values = []
-        for i, e in enumerate(edges):
-            row_ind = row_ind + [i, i]
-            col_ind = col_ind + list(e)
-            values = values + [-1, 1]
+        row_ind = np.repeat(range(len(edges)),2)
+        col_ind = list(itertools.chain(*edges))
+        values = [-1, 1] * len(edges)
         inc_mat = csr_matrix((values, (row_ind, col_ind)))
         return inc_mat
 

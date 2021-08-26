@@ -9,7 +9,7 @@ import scipy.sparse as sparse
 import fastgd.fastgd_base as fastgd_base
 import fastgd.fastgd_cython as fastgd_cython
 import fastgd.fastgd_faster as fastgd_faster
-
+import pdb
 
 class MoDE:
     def __init__(
@@ -141,6 +141,7 @@ class MoDE:
                 r_lb = np.arccos(self.proj_l_u(1 + (c_ub - c_p) / denom, -1, 1))
 
             gamma = 1 / (2 * np.max((np.dot(inc_mat.T, inc_mat)).diagonal()))
+            #pdb.set_trace()
             if self.method == "base":
                 x = self.gd_iter(inc_mat, N, r_lb, r_ub, gamma)
             elif self.method == "fastgd_base":

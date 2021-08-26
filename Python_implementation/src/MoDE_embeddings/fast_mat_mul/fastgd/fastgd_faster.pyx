@@ -17,7 +17,7 @@ np.import_array()
 
 
 
-cdef int mat_mult(double[:] m_data, np.int64_t[:] m_indices, np.int64_t[:] m_indptr, double* vec, double* res):
+cdef int mat_mult(long[:] m_data, int[:] m_indices, int[:] m_indptr, double* vec, double* res):
     cdef Py_ssize_t i
     cdef Py_ssize_t j
     for i in prange(m_indptr.shape[0]-1, nogil=True):
@@ -37,14 +37,14 @@ cdef int proj_l_u(double* vec, double[:] l, double[:] u):
     return 1
 
 
-cdef int comp_grad(double[:] inc_mat_data,
-                np.int64_t[:] inc_mat_indices, 
-                np.int64_t[:] inc_mat_indptr,
-                double[:] inc_mat_tr_data,
-                np.int64_t[:] inc_mat_tr_indices,
-                np.int64_t[:] inc_mat_tr_indptr, 
-                double* x, 
-                double[:] r_lb, 
+cdef int comp_grad(long[:] inc_mat_data,
+                int[:] inc_mat_indices,
+                int[:] inc_mat_indptr,
+                long[:] inc_mat_tr_data,
+                int[:] inc_mat_tr_indices,
+                int[:] inc_mat_tr_indptr,
+                double* x,
+                double[:] r_lb,
                 double[:] r_ub,
                 double* grad):
 
@@ -58,13 +58,12 @@ cdef int comp_grad(double[:] inc_mat_data,
     
 
 
-cdef int gd_routine(double[:] inc_mat_data,
-                    np.int64_t[:] inc_mat_indices, 
-                    np.int64_t[:] inc_mat_indptr,
-                    double[:] inc_mat_tr_data,
-                    np.int64_t[:] inc_mat_tr_indices,
-                    np.int64_t[:] inc_mat_tr_indptr, 
-                    double* x, 
+cdef double* gd_routine(long[:] inc_mat_data,
+                    int[:] inc_mat_indices, 
+                    int[:] inc_mat_indptr,
+                    long[:] inc_mat_tr_data,
+                    int[:] inc_mat_tr_indices,
+                    int[:] inc_mat_tr_indptr, 
                     double[:] r_lb, 
                     double[:] r_ub, 
                     double gamma, 
@@ -75,6 +74,8 @@ cdef int gd_routine(double[:] inc_mat_data,
 
     cdef long cnt
     cdef double* grad = <double*> malloc(sizeof(double)* (N-1))
+    cdef double* x = <double*> malloc(sizeof(double) * (N-1))
+
     cdef long i
     cdef :
         double grad_norm = 0
@@ -102,30 +103,25 @@ cdef int gd_routine(double[:] inc_mat_data,
 
         if grad_norm/(N-1) < tol*tol:
             free(grad)
-            return 1
+            return x
 
         for i in range(N-1):
             x[i] -= gamma * grad[i]
     
     free(grad)
-    return 1
+    return x
 
 def gd(inc_mat,long N, double[:] r_lb, double[:] r_ub, double gamma, long max_iter, bool verbose, double tol):
 
     # Initialization of the GD algorithm
     # initialize angle values with zero
-    cdef double* x = <double*> malloc(sizeof(double) * (N-1))
 
     inc_mat_tr = sparse.csr_matrix(inc_mat.T)
-    print(type(r_lb[0]))
-    gd_routine(inc_mat.data, inc_mat.indices, inc_mat.indptr, inc_mat_tr.data, inc_mat_tr.indices, inc_mat_tr.indptr, x, r_lb, r_ub, gamma, max_iter, tol, verbose, N)
-    cdef np.npy_intp shape[1]
-    shape[0] = <np.npy_intp> (N-1)
-    # Create a 1D array, of length 'size'
-    ndarray = np.PyArray_SimpleNewFromData(1, shape,
-                                            np.NPY_FLOAT, x)
-
-    return ndarray
+    x = gd_routine(inc_mat.data, inc_mat.indices, inc_mat.indptr, inc_mat_tr.data, inc_mat_tr.indices, inc_mat_tr.indptr, r_lb, r_ub, gamma, max_iter, tol, verbose, N)
+    x_arr = np.zeros(N-1, dtype = np.double)
+    for i in range(N-1):
+        x_arr[i] = x[i]
+    return x_arr
 
 
 

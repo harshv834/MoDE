@@ -72,3 +72,12 @@ If you find this code useful or use it in a publication or research, please cite
 - Convert GD code to cython for speedup (Done in all sklearn packages for other methods - Most likely to work)
 - Use t-SNE like Barnes-Hut approximation for GD part (Might have to see performance after this approximation)
 
+
+### Running instructions --
+```
+cd Python_implementation/src/MoDE_embeddings/fast_mat_mul/
+python setup.py build_ext install
+cd ..
+python benchmark_MoDE.py
+
+```

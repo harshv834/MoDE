@@ -107,3 +107,61 @@ The table below shows the runtime comparison (in seconds) for different datasets
 </tbody>
 </table>
 
+## Speed-Up Benchmarks
+
+### Swiss Roll Dataset with 10K points
+<table>
+<thead>
+  <tr>
+    <th>Method</th>
+    <th> Runtime( in seconds) </th>
+    <th>R_d</th>
+    <th>R_c</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td>LLE<br></td>
+    <td>12</td>
+    <td>0.0018824</td>
+    <td>0.99747</td>
+  </tr>
+  <tr>
+    <td>LTSA</td>
+    <td>33</td>
+    <td>0.0022112</td>
+    <td>0.99695</td>
+  </tr>
+  <tr>
+    <td>Hessain LLE</td>
+    <td>15</td>
+    <td>0.0022112</td>
+    <td>0.99695</td>
+  </tr>
+  <tr>
+    <td>Isomap</td>
+    <td>71</td>
+    <td>0.90944</td>
+    <td>0.9981</td>
+  </tr>
+  <tr>
+    <td>Spectral Embedding</td>
+    <td>14</td>
+    <td>0.00026815</td>
+    <td>0.99917</td>
+  </tr>
+  <tr>
+    <td>t - SNE</td>
+    <td>83</td>
+    <td>0.65674</td>
+    <td>0.99588</td>
+  </tr>
+  <tr>
+    <td>MoDE</td>
+    <td>36</td>
+    <td>0.78958</td>
+    <td>0.99933</td>
+  </tr>
+</tbody>
+</table>
+
